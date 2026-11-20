@@ -216,6 +216,7 @@ class PhysicsFormulaApp:
                 for index, force in enumerate(self.forces, start=1)
             )
         for row in rows:
+            
             self.values_table.insert("", tk.END, values=row)
 
     def get_area(self):
