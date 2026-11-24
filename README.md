@@ -1,0 +1,30 @@
+# Fyzikálne vzorce
+
+Desktopová Python aplikácia vytvorená pre zadanie 2.
+
+## Funkcie
+
+- Generuje 60 náhodných teplôt v stupňoch Celzia.
+- Zoraďuje pole a vypočítava priemer, minimum a maximum.
+- Prevádza teplotu podľa vzorca `°F = °C × 1.8 + 32`.
+- Zobrazuje pôvodné aj vypočítané hodnoty v jednom grafe.
+- Umožňuje vygenerovať nových 60 náhodných hodnôt tlačidlom.
+- Prevádza vzdialenosť z metrov na americké (štatutárne) míle podľa vzorca `mi = m / 1609.344`.
+- Prepína medzi prevodom teploty a vzdialenosti; tabuľka aj graf zobrazujú pôvodné a vypočítané hodnoty podľa zvoleného vzorca.
+- V grafe vzdialeností používa samostatné osi pre metre a míle, aby obe krivky zostali dobre čitateľné.
+- Obsahuje vstupné pole, tlačidlo a popis výsledku.
+
+## Spustenie zo zdrojového kódu
+
+```bat
+py -m pip install -r requirements.txt
+py main.py
+```
+
+## Zostavenie EXE
+
+```bat
+build_exe.bat
+```
+
+Výsledný súbor sa vytvorí v priečinku `dist\Fyzikalne_vzorce.exe`.
