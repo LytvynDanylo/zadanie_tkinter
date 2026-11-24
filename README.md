@@ -9,8 +9,9 @@ Desktopová Python aplikácia vytvorená pre zadanie 2.
 - Prevádza teplotu podľa vzorca `°F = °C × 1.8 + 32`.
 - Zobrazuje pôvodné aj vypočítané hodnoty v jednom grafe.
 - Umožňuje vygenerovať nových 60 náhodných hodnôt tlačidlom.
-- Vypočítava tlak podľa vzorca `p = F / S`, kde `F` je sila v newtonoch a `S` je plocha v metroch štvorcových.
-- Prepína medzi prevodom teploty a výpočtom tlaku; tabuľka aj graf zobrazujú pôvodné a vypočítané hodnoty podľa zvoleného vzorca.
+- Prevádza vzdialenosť z metrov na americké (štatutárne) míle podľa vzorca `mi = m / 1609.344`.
+- Prepína medzi prevodom teploty a vzdialenosti; tabuľka aj graf zobrazujú pôvodné a vypočítané hodnoty podľa zvoleného vzorca.
+- V grafe vzdialeností používa samostatné osi pre metre a míle, aby obe krivky zostali dobre čitateľné.
 - Obsahuje vstupné pole, tlačidlo a popis výsledku.
 
 ## Spustenie zo zdrojového kódu

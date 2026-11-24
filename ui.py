@@ -4,8 +4,8 @@ from tkinter import messagebox, ttk
 from formulas import (
     celsius_to_fahrenheit,
     generate_temperatures,
-    pressure_from_force,
-    generate_forces,
+    meters_to_miles,
+    generate_distances,
     array_operations
 )
 
@@ -18,7 +18,8 @@ class PhysicsFormulaApp:
 
         self.values = generate_temperatures()
         self.converted = [celsius_to_fahrenheit(value) for value in self.values]
-        self.forces = generate_forces()
+        self.distances = generate_distances()
+        self.miles = [meters_to_miles(value) for value in self.distances]
 
         title = ttk.Label(
             root,
@@ -38,10 +39,10 @@ class PhysicsFormulaApp:
             textvariable=self.formula_choice,
             values=(
                 "Teplota: °C → °F",
-                "Tlak: p = F / S",
+                "Vzdialenosť: metre → americké míle",
             ),
             state="readonly",
-            width=24,
+            width=34,
         )
         formula_selector.pack(side=tk.LEFT)
         formula_selector.bind("<<ComboboxSelected>>", self.on_formula_changed)
@@ -65,32 +66,26 @@ class PhysicsFormulaApp:
         )
         self.result_label.grid(row=0, column=3)
 
-        self.pressure_frame = ttk.LabelFrame(
+        self.distance_frame = ttk.LabelFrame(
             self.input_frame,
-            text="Tlak: p = F / S",
+            text="Prevod vzdialenosti: metre → americké míle",
         )
-        ttk.Label(self.pressure_frame, text="Sila (N):").grid(
+        ttk.Label(self.distance_frame, text="Vzdialenosť (m):").grid(
             row=0, column=0, padx=(8, 4), pady=8
         )
-        self.force_field = ttk.Entry(self.pressure_frame, width=12)
-        self.force_field.grid(row=0, column=1, padx=4, pady=8)
-        self.force_field.insert(0, "100")
-        ttk.Label(self.pressure_frame, text="Plocha (m²):").grid(
-            row=0, column=2, padx=(12, 4), pady=8
-        )
-        self.area_field = ttk.Entry(self.pressure_frame, width=12)
-        self.area_field.grid(row=0, column=3, padx=4, pady=8)
-        self.area_field.insert(0, "0.01")
+        self.distance_field = ttk.Entry(self.distance_frame, width=12)
+        self.distance_field.grid(row=0, column=1, padx=4, pady=8)
+        self.distance_field.insert(0, "1000")
         ttk.Button(
-            self.pressure_frame,
-            text="Vypočítať tlak",
-            command=self.calculate_pressure,
-        ).grid(row=0, column=4, padx=(8, 12), pady=8)
-        self.pressure_result_label = ttk.Label(
-            self.pressure_frame, text="p = —", foreground="#005a9e"
+            self.distance_frame,
+            text="Prepočítať",
+            command=self.calculate_distance,
+        ).grid(row=0, column=2, padx=(8, 8), pady=8)
+        self.distance_result_label = ttk.Label(
+            self.distance_frame, text="Výsledok: —", foreground="#005a9e"
         )
-        self.pressure_result_label.grid(row=0, column=5, padx=8, pady=8)
-        self.area_field.bind("<KeyRelease>", self.on_pressure_parameter_changed)
+        self.distance_result_label.grid(row=0, column=3, padx=8, pady=8)
+        self.distance_field.bind("<KeyRelease>", self.on_distance_changed)
         self.temperature_frame.pack()
 
         ttk.Button(
@@ -137,18 +132,18 @@ class PhysicsFormulaApp:
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.update_visualization()
         self.input_field.bind("<Return>", lambda event: self.calculate_input())
-        self.area_field.bind("<Return>", lambda event: self.calculate_pressure())
+        self.distance_field.bind("<Return>", lambda event: self.calculate_distance())
 
     def on_formula_changed(self, _event=None):
         if self.formula_choice.get() == "Teplota: °C → °F":
-            self.pressure_frame.pack_forget()
+            self.distance_frame.pack_forget()
             self.temperature_frame.pack()
         else:
             self.temperature_frame.pack_forget()
-            self.pressure_frame.pack()
+            self.distance_frame.pack()
         self.update_visualization()
 
-    def on_pressure_parameter_changed(self, _event=None):
+    def on_distance_changed(self, _event=None):
         if self.formula_choice.get() != "Teplota: °C → °F":
             self.refresh_values_table()
             self.draw_chart()
@@ -168,12 +163,12 @@ class PhysicsFormulaApp:
                 f"Maximum: {operations['maximum']:.1f} °C"
             )
         else:
-            operations = array_operations(self.forces)
+            operations = array_operations(self.distances)
             summary = (
-                f"Pole síl: {len(self.forces)} hodnôt  |  Priemer: "
-                f"{operations['average']:.2f} N  |  Minimum: "
-                f"{operations['minimum']:.1f} N  |  "
-                f"Maximum: {operations['maximum']:.1f} N"
+                f"Pole vzdialeností: {len(self.distances)} hodnôt  |  Priemer: "
+                f"{operations['average']:.2f} m  |  Minimum: "
+                f"{operations['minimum']:.1f} m  |  "
+                f"Maximum: {operations['maximum']:.1f} m"
             )
         self.summary_label.config(text=summary)
 
@@ -196,49 +191,44 @@ class PhysicsFormulaApp:
             )
         else:
             self.values_table.heading("index", text="Poradie")
-            self.values_table.heading("input1", text="Sila (N)")
-            self.values_table.heading("input2", text="Plocha (m²)")
-            self.values_table.heading("result", text="Vypočítaný tlak (Pa)")
+            self.values_table.heading("input1", text="Vzdialenosť (m)")
+            self.values_table.heading("input2", text="")
+            self.values_table.heading("result", text="Vzdialenosť (americké míle)")
             self.values_table.column("index", width=80)
             self.values_table.column("input1", width=160)
-            self.values_table.column("input2", width=160)
-            self.values_table.column("result", width=200)
-            area = self.get_area()
-            if area is None:
-                return
+            self.values_table.column("input2", width=0)
+            self.values_table.column("result", width=240)
             rows = (
                 (
                     index,
-                    f"{force:.1f}",
-                    f"{area:.4f}",
-                    f"{pressure_from_force(force, area):.2f}",
+                    f"{meters:.1f}",
+                    "",
+                    f"{miles:.3f}",
                 )
-                for index, force in enumerate(self.forces, start=1)
+                for index, (meters, miles) in enumerate(
+                    zip(self.distances, self.miles), start=1
+                )
             )
         for row in rows:
-            
             self.values_table.insert("", tk.END, values=row)
-
-    def get_area(self):
-        try:
-            area = float(self.area_field.get().strip().replace(",", "."))
-        except ValueError:
-            return None
-        if not math.isfinite(area) or area <= 0:
-            return None
-        return area
 
     def generate_new_values(self):
         self.values = generate_temperatures()
         self.converted = [celsius_to_fahrenheit(value) for value in self.values]
-        self.forces = generate_forces()
+        self.distances = generate_distances()
+        self.miles = [meters_to_miles(value) for value in self.distances]
         self.update_visualization()
 
     def draw_chart(self):
         self.canvas.delete("all")
         width = max(self.canvas.winfo_width(), 700)
         height = max(self.canvas.winfo_height(), 420)
-        left, right, top, bottom = 70, 20, 55, 55
+        left, right, top, bottom = (
+            70,
+            75 if self.formula_choice.get() != "Teplota: °C → °F" else 20,
+            55,
+            55,
+        )
         plot_width = width - left - right
         plot_height = height - top - bottom
 
@@ -251,27 +241,17 @@ class PhysicsFormulaApp:
             x_label = "Poradie hodnoty"
             first_label = "Pôvodná teplota (°C)"
             second_label = "Prepočítaná teplota (°F)"
+            separate_scales = False
         else:
-            area = self.get_area()
-            if area is None:
-                self.canvas.create_text(
-                    width / 2,
-                    height / 2,
-                    text="Zadajte plochu väčšiu ako 0 m².",
-                    font=("Segoe UI", 12),
-                )
-                return
-            x_values = list(range(1, len(self.forces) + 1))
-            first_series = self.forces
-            second_series = [
-                pressure_from_force(force, area)
-                for force in self.forces
-            ]
-            y_values = first_series + second_series
-            title = f"Porovnanie sily (N) a tlaku (Pa), plocha = {area:g} m²"
+            x_values = list(range(1, len(self.distances) + 1))
+            first_series = self.distances
+            second_series = self.miles
+            y_values = first_series
+            title = "Porovnanie vzdialenosti v metroch a amerických míľach"
             x_label = "Poradie hodnoty"
-            first_label = "Pôvodná sila (N)"
-            second_label = "Vypočítaný tlak (Pa)"
+            first_label = "Vzdialenosť (m)"
+            second_label = "Vzdialenosť (mi)"
+            separate_scales = True
 
         x_min, x_max = min(x_values), max(x_values)
         x_range = x_max - x_min or 1
@@ -283,6 +263,15 @@ class PhysicsFormulaApp:
 
         def y(value):
             return top + (maximum - value) * plot_height / value_range
+
+        if separate_scales:
+            second_minimum, second_maximum = min(second_series), max(second_series)
+            second_range = second_maximum - second_minimum or 1
+
+            def y_second(value):
+                return top + (second_maximum - value) * plot_height / second_range
+        else:
+            y_second = y
 
         self.canvas.create_text(
             width / 2,
@@ -322,6 +311,32 @@ class PhysicsFormulaApp:
         self.canvas.create_line(
             left, top, left, height - bottom, fill="#666666"
         )
+        if separate_scales:
+            self.canvas.create_line(
+                width - right, top, width - right, height - bottom, fill="#666666"
+            )
+            for step in range(6):
+                second_value = second_minimum + step * second_range / 5
+                y_pos = y_second(second_value)
+                self.canvas.create_line(
+                    width - right, y_pos, width - right - 5, y_pos, fill="#666666"
+                )
+                self.canvas.create_text(
+                    width - right + 8,
+                    y_pos,
+                    text=f"{second_value:.1f}",
+                    anchor="w",
+                    font=("Segoe UI", 9),
+                )
+            self.canvas.create_text(
+                16, height / 2, text="Vzdialenosť (m)", angle=90,
+                font=("Segoe UI", 9),
+            )
+            self.canvas.create_text(
+                width - right + 52, height / 2,
+                text="Vzdialenosť (mi)", angle=90,
+                font=("Segoe UI", 9),
+            )
         self.canvas.create_text(
             width / 2,
             height - 18,
@@ -353,7 +368,7 @@ class PhysicsFormulaApp:
         )
         if second_series is not None:
             second_points = [
-                (x(x_value), y(value))
+                (x(x_value), y_second(value))
                 for x_value, value in zip(x_values, second_series)
             ]
             self.canvas.create_line(
@@ -398,30 +413,26 @@ class PhysicsFormulaApp:
             text=f"Výsledok: {celsius:.2f} °C = {fahrenheit:.2f} °F"
         )
 
-    def calculate_pressure(self):
+    def calculate_distance(self):
         try:
-            force = float(self.force_field.get().strip().replace(",", "."))
-            area = float(self.area_field.get().strip().replace(",", "."))
+            meters = float(self.distance_field.get().strip().replace(",", "."))
         except ValueError:
             messagebox.showerror(
                 "Neplatný vstup",
-                "Zadajte číselné hodnoty sily a plochy.",
+                "Zadajte platnú vzdialenosť v metroch.",
             )
             return
 
-        if (
-            not math.isfinite(force)
-            or not math.isfinite(area)
-            or force < 0
-            or area <= 0
-        ):
+        if not math.isfinite(meters) or meters < 0:
             messagebox.showerror(
                 "Neplatný vstup",
-                "Sila musí byť nezáporná a plocha väčšia ako nula.",
+                "Vzdialenosť musí byť nezáporné konečné číslo.",
             )
             return
 
-        pressure = pressure_from_force(force, area)
-        self.pressure_result_label.config(text=f"p = {pressure:.2f} Pa")
+        miles = meters_to_miles(meters)
+        self.distance_result_label.config(
+            text=f"Výsledok: {meters:.2f} m = {miles:.3f} mi"
+        )
         self.refresh_values_table()
         self.draw_chart()
